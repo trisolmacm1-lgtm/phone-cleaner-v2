@@ -51,7 +51,7 @@ class PremiumProvider extends ChangeNotifier {
   String? get error => _error;
 
   bool get isSubscribe => _activePlan != null;
-
+  // bool get isSubscribe  => true;
   bool get isInitialized => _isInitialized;
 
   Future<void> initialize() async {

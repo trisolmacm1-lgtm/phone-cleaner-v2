@@ -136,7 +136,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get videoDownloadSuccess =>
-      'Your Compressed video has been\n download successfully.';
+      'Your Compressed video has been\n saved successfully.';
 
   @override
   String get compressedNextVideo => 'Compressed Next Video';

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:phone_cleaner_2/core/routes.dart';
 import 'package:phone_cleaner_2/core/utils/colors.dart';
 import 'package:phone_cleaner_2/core/utils/responsive_sizer.dart';
 import 'package:phone_cleaner_2/core/widgets/gradient_button.dart';
 import 'package:phone_cleaner_2/l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
+import '../paywall_screen/paywall_provider.dart';
 import 'theme_provider.dart';
 
 class ThemeScreen extends StatefulWidget {
@@ -27,6 +30,13 @@ class _ThemeScreenState extends State<ThemeScreen> {
   Widget build(BuildContext context) {
     final currentTheme = context.watch<ThemeProvider>().theme;
     final provider = AppLocalizations.of(context)!;
+
+    // TODO: Replace this with your actual Premium/Subscription provider logic
+    // Example: final isUserPremium = context.watch<SubscriptionProvider>().isPremium;
+    bool isUserPremium = Provider.of<PremiumProvider>(
+      context,
+      listen: false,
+    ).isSubscribe;
 
     final themes = [
       {'name': provider.defaultColor, 'type': AppThemeType.defaultTheme},
@@ -70,28 +80,71 @@ class _ThemeScreenState extends State<ThemeScreen> {
 
                   final bool isSelected = selectedTheme == type;
 
+                  // --- 👑 PREMIUM LOGIC ---
+                  // 1. First theme (index 0) is free, others are premium
+                  final bool isPremiumTheme = index != 0;
+
+                  // 2. Is it locked for this user?
+                  final bool isLocked = isPremiumTheme && !isUserPremium;
+
                   return GestureDetector(
                     onTap: () {
+                      // --- 🔒 CHECK LOCK STATUS ---
+                      if (isLocked) {
+                        context.go(AppRouter.premium);
+                        return;
+                      }
+
                       setState(() => selectedTheme = type);
                     },
                     child: Column(
                       children: [
-                        Container(
-                          width: 70.w,
-                          height: 70.h,
-                          decoration: BoxDecoration(
-                            color: theme.primaryColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isSelected
-                                  ? currentTheme.primaryColor
-                                  : Colors.transparent,
-                              width: 3,
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 70.w,
+                              height: 70.h,
+                              decoration: BoxDecoration(
+                                color: theme.primaryColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isSelected
+                                      ? currentTheme.primaryColor
+                                      : Colors.transparent,
+                                  width: 3,
+                                ),
+                              ),
+                              // Display Check if selected, otherwise display Lock if locked
+                              child: isSelected
+                                  ? const Icon(Icons.check, color: Colors.white)
+                                  : (isLocked
+                                        ? const Icon(
+                                            Icons.lock_outline,
+                                            color: Colors.white54,
+                                          )
+                                        : null),
                             ),
-                          ),
-                          child: isSelected
-                              ? const Icon(Icons.check, color: Colors.white)
-                              : null,
+
+                            // Optional: Add a small "Crown" badge on the corner for premium themes
+                            if (isLocked)
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.amber,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.workspace_premium, // Crown icon
+                                    color: Colors.white,
+                                    size: 12,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         Container(

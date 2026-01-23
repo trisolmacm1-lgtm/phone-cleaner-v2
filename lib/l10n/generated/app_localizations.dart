@@ -359,7 +359,7 @@ abstract class AppLocalizations {
   /// No description provided for @videoDownloadSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Your Compressed video has been\n download successfully.'**
+  /// **'Your Compressed video has been\n saved successfully.'**
   String get videoDownloadSuccess;
 
   /// No description provided for @compressedNextVideo.
