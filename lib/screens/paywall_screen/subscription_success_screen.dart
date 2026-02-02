@@ -4,6 +4,7 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phone_cleaner_2/core/routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 
@@ -19,6 +20,7 @@ class SubscriptionSuccessScreen extends StatefulWidget {
 
 class _SubscriptionSuccessScreenState extends State<SubscriptionSuccessScreen> {
   late ConfettiController _confettiController;
+
 
   @override
   void initState() {

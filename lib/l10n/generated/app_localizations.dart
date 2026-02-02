@@ -617,7 +617,7 @@ abstract class AppLocalizations {
   /// No description provided for @startFreeNow.
   ///
   /// In en, this message translates to:
-  /// **'Start Free Now'**
+  /// **'Start Free Trial Now'**
   String get startFreeNow;
 
   /// No description provided for @startNow.

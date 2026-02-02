@@ -272,7 +272,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get twoTapsToStart => 'Zwei Tippvorgänge zum Starten.';
 
   @override
-  String get startFreeNow => 'Jetzt kostenlos starten';
+  String get startFreeNow => 'Jetzt kostenlose Testversion starten';
 
   @override
   String get startNow => 'Jetzt starten';

@@ -97,50 +97,90 @@ class StorageProvider extends ChangeNotifier {
   /// 🔹 Delete all contacts
   Future<void> deleteAllContacts() async {
     try {
+      // We only clear the list if the loop finishes without being interrupted or failing
       for (final contact in contacts) {
         await contact.delete();
       }
-      contacts.clear();
+      contacts.clear(); // Only happens if all deletions were attempted
       notifyListeners();
     } catch (e) {
       debugPrint("Failed to delete contacts: $e");
+      // Optionally reload contacts to show what's left
+      await loadContacts();
     }
   }
 
   /// 🔹 Smart Clean - Delete all
-  Future<void> smartCleanAll(BuildContext context) async {
+  // Future<void> smartCleanAll(BuildContext context) async {
+  //   if (isCleaning) return;
+  //   isCleaning = true;
+  //   notifyListeners();
+  //   final provider1 = Provider.of<DuplicateVideoFinderProvider>(
+  //     context,
+  //     listen: false,
+  //   );
+  //   final provider2 = Provider.of<DuplicateVideoFinderProvider>(
+  //     context,
+  //     listen: false,
+  //   );
+  //   try {
+  //     await _service.deleteAllImages(photos);
+  //     await _service.deleteAllVideos(videos);
+  //     await deleteAllContacts();
+  //
+  //     photos.clear();
+  //     videos.clear();
+  //     await loadStorageDetails();
+  //
+  //     await provider1
+  //         .startScan(); // Notify duplicate finder to refresh if needed and
+  //     await provider2.startScan();
+  //
+  //     /// call that functon
+  //     notifyListeners();
+  //   } catch (e) {
+  //     debugPrint("Smart clean failed: $e");
+  //   }
+  //
+  //   isCleaning = false;
+  //   notifyListeners();
+  // }
+  /// 🔹 Smart Clean - Delete ONLY selected categories
+  Future<void> smartCleanAll(BuildContext context, Set<int> selectedIndexes) async {
     if (isCleaning) return;
     isCleaning = true;
     notifyListeners();
-    final provider1 = Provider.of<DuplicateVideoFinderProvider>(
-      context,
-      listen: false,
-    );
-    final provider2 = Provider.of<DuplicateVideoFinderProvider>(
-      context,
-      listen: false,
-    );
+
+    final provider1 = Provider.of<DuplicateVideoFinderProvider>(context, listen: false);
+
     try {
-      await _service.deleteAllImages(photos);
-      await _service.deleteAllVideos(videos);
-      await deleteAllContacts();
+      // 🖼️ Only delete images if index 2 is selected
+      if (selectedIndexes.contains(2)) {
+        final bool imagesDeleted = await _service.deleteAllImages(photos);
+        if (imagesDeleted) photos.clear();
+      }
 
-      photos.clear();
-      videos.clear();
+      // 🎥 Only delete videos if index 1 is selected
+      if (selectedIndexes.contains(1)) {
+        final bool videosDeleted = await _service.deleteAllVideos(videos);
+        if (videosDeleted) videos.clear();
+      }
+
+      // 👤 Only delete contacts if index 0 is selected
+      if (selectedIndexes.contains(0)) {
+        await deleteAllContacts();
+      }
+
       await loadStorageDetails();
+      await provider1.startScan();
 
-      await provider1
-          .startScan(); // Notify duplicate finder to refresh if needed and
-      await provider2.startScan();
-
-      /// call that functon
       notifyListeners();
     } catch (e) {
       debugPrint("Smart clean failed: $e");
+    } finally {
+      isCleaning = false;
+      notifyListeners();
     }
-
-    isCleaning = false;
-    notifyListeners();
   }
 
   /// 🔹 Compute sizes lazily for PHOTOS only (batch updates)

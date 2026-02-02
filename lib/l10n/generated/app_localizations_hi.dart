@@ -270,7 +270,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get twoTapsToStart => 'शुरू करने के लिए 2 टैप करें।';
 
   @override
-  String get startFreeNow => 'अभी मुफ्त में शुरू करें';
+  String get startFreeNow => 'अभी निःशुल्क परीक्षण शुरू करें';
 
   @override
   String get startNow => 'अभी शुरू करें';

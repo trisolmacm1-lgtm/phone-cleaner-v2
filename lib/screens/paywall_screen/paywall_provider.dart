@@ -51,6 +51,7 @@ class PremiumProvider extends ChangeNotifier {
   String? get error => _error;
 
   bool get isSubscribe => _activePlan != null;
+
   // bool get isSubscribe  => true;
   bool get isInitialized => _isInitialized;
 
@@ -201,7 +202,10 @@ class PremiumProvider extends ChangeNotifier {
         _handleSuccessfulPurchase(purchaseDetails);
 
         // navigate to home screen
-        _nextRoute = AppRouter.success;
+        final bool p = prefs.getBool("is_show_success_screen") ?? false;
+        if (!p) {
+          _nextRoute = AppRouter.success;
+        }
         notifyListeners();
       }
 
@@ -330,6 +334,7 @@ class PremiumProvider extends ChangeNotifier {
     await prefs.remove('active_subscription_id');
     await prefs.remove('subscription_start_date');
     await prefs.remove('ios_receipt');
+    await prefs.remove('is_show_success_screen');
     log("${_activePlan?.id}");
 
     _activePlan = null;
@@ -344,6 +349,7 @@ class PremiumProvider extends ChangeNotifier {
         'subscription_start_date',
         DateTime.now().toIso8601String(),
       );
+      await prefs.setBool("is_show_success_screen", true);
     }
   }
 

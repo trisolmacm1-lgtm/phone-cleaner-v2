@@ -270,7 +270,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get twoTapsToStart => '2 taps to start.';
 
   @override
-  String get startFreeNow => 'Start Free Now';
+  String get startFreeNow => 'Start Free Trial Now';
 
   @override
   String get startNow => 'Start Now';

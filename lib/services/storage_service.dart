@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:disk_space/disk_space.dart';
 import '../models/media_item.dart';
@@ -118,30 +119,32 @@ class StorageService {
   // 🔹 DELETE FUNCTIONS
 
   /// Delete all images
-  Future<void> deleteAllImages(List<MediaItem> photos) async {
-    try {
-      final assets = photos.map((e) => e.asset).toList();
-      if (assets.isNotEmpty) {
-        await PhotoManager.editor.deleteWithIds(
-          assets.map((a) => a.id).toList(),
-        );
-      }
-    } catch (e) {
-      print("Error deleting images: $e");
-    }
+// Inside StorageService class
+  Future<bool> deleteAllImages(List<MediaItem> items) async {
+    final List<String> ids = items.map((e) => e.id).toList();
+    // PhotoManager.editor.deleteWithIds returns a List of deleted IDs.
+    // If the returned list is empty, it means the user clicked 'Cancel'.
+    final List<String> result = await PhotoManager.editor.deleteWithIds(ids);
+    return result.isNotEmpty;
   }
 
   /// Delete all videos
-  Future<void> deleteAllVideos(List<MediaItem> videos) async {
+  Future<bool> deleteAllVideos(List<MediaItem> videos) async {
     try {
-      final assets = videos.map((e) => e.asset).toList();
-      if (assets.isNotEmpty) {
-        await PhotoManager.editor.deleteWithIds(
-          assets.map((a) => a.id).toList(),
-        );
+      final List<String> ids = videos.map((v) => v.id).toList();
+
+      if (ids.isNotEmpty) {
+        // This call triggers the system popup
+        final List<String> deletedIds = await PhotoManager.editor.deleteWithIds(ids);
+
+        // If deletedIds is NOT empty, it means the user clicked 'Allow'
+        // and at least one item was removed.
+        return deletedIds.isNotEmpty;
       }
+      return false;
     } catch (e) {
-      print("Error deleting videos: $e");
+      debugPrint("Error deleting videos: $e");
+      return false;
     }
   }
 

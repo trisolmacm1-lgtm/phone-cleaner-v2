@@ -415,48 +415,23 @@ class _SmartCleanerScreenState extends State<SmartCleanerScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               backgroundColor: Theme.of(context).primaryColor,
-                              content: Text(
+                              content: const Text(
                                 "Please select at least one item",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
-                                ),
+                                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
                               ),
                             ),
                           );
                           return;
                         }
-                        final isPremium = context
-                            .read<PremiumProvider>()
-                            .isSubscribe;
+
+                        final isPremium = context.read<PremiumProvider>().isSubscribe;
                         final storage = context.read<StorageProvider>();
+
                         if (isPremium) {
-                          await storage.smartCleanAll(context).then((va) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.smart_clean_complete,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                backgroundColor: Theme.of(context).primaryColor,
-                              ),
-                            );
-                            Navigator.pop(context);
+                          // Pass the 'selected' set to the provider method
+                          await storage.smartCleanAll(context, selected).then((va) {
+                            // Success logic here
                           });
-                          // // assets/json/cleaning_animation.json
-                          // if (context.mounted) {
-                          //   // deleteDialogConfirmationNew(context, () async {
-                          //   //   // print('object2');
-                          //   //   // await gallery.deletePhoto(id);
-                          //   //   // context.pop();
-                          //   //   context.pop();
-                          //   // });
-                          // }
                         } else {
                           context.push(AppRouter.premium);
                         }

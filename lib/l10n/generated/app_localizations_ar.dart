@@ -269,7 +269,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get twoTapsToStart => 'نقرتان للبدء.';
 
   @override
-  String get startFreeNow => 'ابدأ مجانًا الآن';
+  String get startFreeNow => 'ابدأ الفترة التجريبية المجانية الآن';
 
   @override
   String get startNow => 'ابدأ الآن';

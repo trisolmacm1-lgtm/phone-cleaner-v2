@@ -111,7 +111,7 @@ class _PremiumUnlockScreenState extends State<PremiumUnlockScreen> {
                                       title: 'Weekly',
                                       price:
                                           "${provider.availablePlans[0].price}/\nWeek",
-                                      details: localizations.threeDaysFreeTrial,
+                                      details: "",
                                       isSelected: _selectedPlanIndex == 0,
                                       isfreetrailShow: _selectedPlanIndex == 0
                                           ? true
@@ -125,7 +125,7 @@ class _PremiumUnlockScreenState extends State<PremiumUnlockScreen> {
                                       context,
                                       title: 'Weekly',
                                       price: '\$16.99/\nWeekly',
-                                      details: 'Three Days Free Trial',
+                                      details: '',
                                       isSelected: _selectedPlanIndex == 0,
                                       isfreetrailShow: _selectedPlanIndex == 0
                                           ? true

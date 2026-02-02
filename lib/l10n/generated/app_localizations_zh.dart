@@ -263,7 +263,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get twoTapsToStart => '两次点击即可开始。';
 
   @override
-  String get startFreeNow => '立即免费开始';
+  String get startFreeNow => '立即开始免费试用';
 
   @override
   String get startNow => '立即开始';

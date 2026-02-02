@@ -270,7 +270,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get twoTapsToStart => '2 tapes pour commencer.';
 
   @override
-  String get startFreeNow => 'Commencer gratuitement maintenant';
+  String get startFreeNow => 'Commencer l essai gratuit maintenant';
 
   @override
   String get startNow => 'Commencer maintenant';
