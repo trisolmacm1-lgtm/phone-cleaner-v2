@@ -1,0 +1,11 @@
+framework module disk_space {
+  umbrella header "disk_space-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module disk_space.Swift {
+  header "disk_space-Swift.h"
+  requires objc
+}

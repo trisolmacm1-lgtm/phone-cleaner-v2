@@ -67,6 +67,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl:
+  battery_plus: ^7.0.0
+  app_settings: ^7.0.0
 
 flutter_launcher_icons:
   android: false

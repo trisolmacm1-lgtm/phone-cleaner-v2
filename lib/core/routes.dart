@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:go_router/go_router.dart';
 import 'package:phone_cleaner_2/screens/compress_screen/compression_screen.dart';
+import 'package:phone_cleaner_2/screens/home_screen/phone_cleaner_home.dart';
 import 'package:phone_cleaner_2/screens/language_screen/language_screen.dart';
 import 'package:phone_cleaner_2/screens/onboarding_screen/onboarding_screen.dart';
 import 'package:phone_cleaner_2/screens/private_screen/private_view.dart';
@@ -14,7 +15,6 @@ import '../screens/compress_screen/compress_result.dart';
 import '../screens/duplicate_contacts_screen/contacts_view.dart';
 import '../screens/duplicate_image_screen/duplicate_image_screen.dart';
 import '../screens/duplicate_videos_screen/duplicate_screen.dart';
-import '../screens/home_screen/dashboard.dart';
 import '../screens/paywall_screen/premium_unlock_screen.dart';
 import '../screens/paywall_screen/subscription_success_screen.dart';
 import '../screens/private_screen/image_display_view.dart';
@@ -35,7 +35,10 @@ class AppRouter {
         path: onboarding,
         builder: (context, state) => const OnboardingScreen(),
       ),
-      GoRoute(path: dashboard, builder: (context, state) => const Dashboard()),
+      GoRoute(
+        path: dashboard,
+        builder: (context, state) => const PhoneCleanerHome(),
+      ),
       GoRoute(
         path: '/compression',
         name: AppRouter.compression,

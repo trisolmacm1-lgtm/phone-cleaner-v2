@@ -11,7 +11,7 @@ class MediaCategoryCard extends StatelessWidget {
   final String title;
   final List<AssetEntity> previewImages;
   final String itemCount;
-  final String totalSize;
+  final String totalSize, path;
   final VoidCallback onTap;
 
   const MediaCategoryCard({
@@ -22,6 +22,7 @@ class MediaCategoryCard extends StatelessWidget {
     required this.previewImages,
     required this.itemCount,
     required this.totalSize,
+    required this.path,
     required this.onTap,
   });
 
@@ -49,11 +50,15 @@ class MediaCategoryCard extends StatelessWidget {
                   height: 36.h,
                   width: 36.w,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
+                    // color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(image: AssetImage(path)),
                   ),
                   padding: EdgeInsets.all(8),
-                  child: SvgPicture.asset(assetName),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: SvgPicture.asset(assetName),
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Text(

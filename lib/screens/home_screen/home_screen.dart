@@ -143,6 +143,7 @@ class _HomeViewState extends State<HomeView> {
                               : storage.requestPermission(context);
                         });
                       },
+                      path: 'assets/png/img.png',
                     ),
                     MediaCategoryCard(
                       assetName: 'assets/svg/videos.svg',
@@ -188,6 +189,7 @@ class _HomeViewState extends State<HomeView> {
                               : storage.requestPermission(context);
                         });
                       },
+                      path: 'assets/png/video.png',
                     ),
 
                     // _buildCategoryButton(
@@ -321,14 +323,19 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard> {
                 height: 45,
 
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
                   borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    image: AssetImage('assets/png/contact.png'),
+                  ),
                 ),
                 padding: EdgeInsets.all(8),
-                child: SvgPicture.asset(
-                  "assets/svg/contacts.svg",
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 7.0, top: 4),
+                  child: SvgPicture.asset(
+                    "assets/svg/contacts.svg",
 
-                  // color: Theme.of(context).primaryColor,
+                    // color: Theme.of(context).primaryColor,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),

@@ -1,274 +1,226 @@
-import 'dart:ui'; // <--- This is the missing piece for PathMetric
-
 import 'package:flutter/material.dart';
-import 'package:phone_cleaner_2/main.dart';
 
-class SquareProgressIndicator extends StatefulWidget {
-  final double targetValue;
-  final double size;
-  final double strokeWidth;
-  final double cornerRadius;
-  final double scallopDepth; // New parameter for inward curve depth
+class SegmentedCircularPainter extends CustomPainter {
+  final double totalStorage;
+  final double imageStorage;
+  final double videoStorage;
+  final double contactStorage;
 
-  const SquareProgressIndicator({
-    super.key,
-    required this.targetValue,
-    this.size = 150.0,
-    this.strokeWidth = 12.0,
-    this.cornerRadius = 30.0,
-    this.scallopDepth = 15.0,
+  SegmentedCircularPainter({
+    required this.totalStorage,
+    required this.imageStorage,
+    required this.videoStorage,
+    required this.contactStorage,
   });
 
-  @override
-  State<SquareProgressIndicator> createState() =>
-      _SquareProgressIndicatorState();
-}
-
-class _SquareProgressIndicatorState extends State<SquareProgressIndicator>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: widget.targetValue,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-    _controller.forward();
-  }
-
-  // ... (didUpdateWidget and dispose methods remain the same) ...
-
-  @override
-  void didUpdateWidget(covariant SquareProgressIndicator oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.targetValue != widget.targetValue) {
-      _animation = Tween<double>(
-        begin: _animation.value,
-        end: widget.targetValue,
-      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-      _controller.forward(from: 0.0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: ScallopedProgressPainter(
-              // Changed painter name
-              progress: _animation.value,
-              strokeWidth: widget.strokeWidth,
-              cornerRadius: widget.cornerRadius,
-              scallopDepth: widget.scallopDepth, // Passed to painter
-            ),
-            child: Center(
-              child: Text(
-                '${(widget.targetValue * 100).toInt()}%',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'Gilroy',
-                  fontSize: widget.size * 0.28,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// --- 2. The CustomPainter for Drawing the Scalloped Shape ---
-
-// --- 2. The CustomPainter for Drawing the Scalloped Shape (MODIFIED) ---
-
-class ScallopedProgressPainter extends CustomPainter {
-  final double progress;
-  final double strokeWidth;
-  final double cornerRadius;
-  final double scallopDepth;
-
-  ScallopedProgressPainter({
-    required this.progress,
-    required this.strokeWidth,
-    required this.cornerRadius,
-    required this.scallopDepth,
-  });
+  final double strokeWidth = 20;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double halfStroke = strokeWidth / 2;
+    final center = Offset(size.width / 2, size.height / 2);
 
-    // Path for the background track and inner fill
-    final Path trackPath = _createScallopedPath(
-      size,
-      cornerRadius,
-      scallopDepth,
-      halfStroke, // Inset by half the stroke for drawing the path center
+    const double totalAngle = 2 * 3.14159;
+
+    final double radius = (size.width / 2.8) - strokeWidth / 10;
+
+    // ✅ Spacing from OUTER ring
+    final double outerGap = 0;
+
+    // ✅ Spacing from INNER ring
+    final double innerGap = 9;
+
+    // ✅ Outer full ring boundary
+    final borderRect = Rect.fromCircle(center: center, radius: radius);
+
+    // ✅ Segment ring radius sits between inner & outer gap
+    final segmentRect = Rect.fromCircle(
+      center: center,
+      radius: radius - outerGap,
     );
 
-    // --- 1. Draw the Inner Scalloped Background (Gradient Fill - Gold) ---
-    // (This part remains the same)
-    final Path innerPath = _createScallopedPath(
-      size,
-      cornerRadius,
-      scallopDepth,
-      halfStroke * 2,
-    );
+    // ✅ Reduce segment thickness so inner space is visible
+    final double segmentStroke = strokeWidth - innerGap;
 
-    final Paint innerFillPaint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.transparent, Colors.transparent],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    // ======================================================
+    // ✅ Background Ring
+    // ======================================================
 
-    canvas.drawPath(innerPath, innerFillPaint);
-
-    // --- 2. Draw the Background Track (Faded White) ---
-    // (This part remains the same)
-    final Paint trackPaint = Paint()
-      ..color = const Color(0x33FFFFFF)
+    final bgPaint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = strokeWidth;
 
-    canvas.drawPath(trackPath, trackPaint);
+    canvas.drawArc(borderRect, 0, totalAngle, false, bgPaint);
 
-    // --- 3. Draw the Gradient Progress Arc (MODIFIED) ---
-    if (progress > 0) {
-      final PathMetric pathMetric = trackPath.computeMetrics().first;
-      final double totalLength = pathMetric.length;
-      final double progressLength = totalLength * progress;
+    // ======================================================
+    // ✅ Outer Border Ring
+    // ======================================================
 
-      // Extract the path segment for the current progress
-      final Path progressPath = pathMetric.extractPath(0, progressLength);
+    final outerRingPaint = Paint()
+      ..color = Colors.white.withOpacity(0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
 
-      // Determine the bounds of the current progress path for the gradient shader
-      // We use the entire widget bounds, but the path itself defines the gradient shape.
-      final Rect rect = Offset.zero & size;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius + strokeWidth / 2),
+      0,
+      totalAngle,
+      false,
+      outerRingPaint,
+    );
 
-      final Paint progressPaint = Paint()
-        // *** START OF GRADIENT IMPLEMENTATION ***
-        ..shader = LinearGradient(
-          // Define the colors for the gradient
-          colors: [
-            Theme.of(rootNavigatorKey.currentContext!).primaryColor,
-            // Color(0xFFDBBC72), // Darker color for the end
-            Color(0xFFFFFFFF), // Light color for the start
-          ],
-          // The gradient should extend along the entire path length
-          // We define the starting point (0.0) and ending point (progressLength / totalLength)
-          stops: [0.0, .5],
+    // ======================================================
+    // ✅ Inner Border Ring
+    // ======================================================
 
-          // Define the coordinate system for the gradient.
-          // We use the overall bounding box of the widget.
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ).createShader(rect)
-        // *** END OF GRADIENT IMPLEMENTATION ***
+    final innerRingPaint = Paint()
+      ..color = Colors.white.withOpacity(0.12)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
+      0,
+      totalAngle,
+      false,
+      innerRingPaint,
+    );
+
+    // ======================================================
+    // ✅ Segment Data
+    // ======================================================
+
+    final values = [imageStorage, videoStorage, contactStorage];
+
+    final colors = [
+      const Color(0xFF91ADF4),
+      const Color(0xFF81DEEA),
+      const Color(0xFF98EE99),
+    ];
+
+    double startAngle = -3.14159 / 2;
+    const double gap = 0.35;
+
+    // ======================================================
+    // ✅ Draw Segments with BOTH Side Spacing
+    // ======================================================
+
+    for (int i = 0; i < values.length; i++) {
+      final sweepAngle = (values[i] / totalStorage) * totalAngle;
+
+      final adjustedStart = startAngle + gap / 2;
+      final adjustedSweep = sweepAngle - gap;
+
+      // ✅ Outer Shadow
+      final outerShadowPaint = Paint()
+        ..color = Colors.black.withOpacity(0.25)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
+        ..strokeWidth = segmentStroke
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+
+      canvas.drawArc(
+        Rect.fromCircle(
+          center: Offset(center.dx, center.dy + 3),
+          radius: radius - outerGap,
+        ),
+        adjustedStart,
+        adjustedSweep,
+        false,
+        outerShadowPaint,
+      );
+
+      // ✅ Main Segment
+      final segmentPaint = Paint()
+        ..color = colors[i]
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = segmentStroke
         ..strokeCap = StrokeCap.round;
 
-      canvas.drawPath(progressPath, progressPaint);
+      canvas.drawArc(
+        segmentRect,
+        adjustedStart,
+        adjustedSweep,
+        false,
+        segmentPaint,
+      );
+
+      // ✅ Inner Shadow
+      final innerShadowPaint = Paint()
+        ..color = Colors.black.withOpacity(0.15)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = segmentStroke - 6
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.inner, 5);
+
+      canvas.drawArc(
+        Rect.fromCircle(
+          center: Offset(center.dx, center.dy - 3),
+          radius: radius - outerGap - 1,
+        ),
+        adjustedStart,
+        adjustedSweep,
+        false,
+        innerShadowPaint,
+      );
+
+      // ✅ Highlight Bevel
+      final highlightPaint = Paint()
+        ..color = Colors.white.withOpacity(0.18)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+
+      canvas.drawArc(
+        Rect.fromCircle(
+          center: Offset(center.dx, center.dy + 1),
+          radius: radius - outerGap - 1,
+        ),
+        adjustedStart,
+        adjustedSweep,
+        false,
+        highlightPaint,
+      );
+
+      startAngle += sweepAngle;
     }
+
+    // ======================================================
+    // ✅ Center Percentage
+    // ======================================================
+
+    final used = imageStorage + videoStorage + contactStorage;
+    final percent = (used / totalStorage) * 100;
+
+    _drawCenterText(canvas, center, percent);
   }
 
-  // Helper function _createScallopedPath remains the same
-  Path _createScallopedPath(
-    Size size,
-    double radius,
-    double depth,
-    double inset,
-  ) {
-    // ... (Code for creating the path remains the same as previous response) ...
-    final Path path = Path();
-    final double w = size.width;
-    final double h = size.height;
-
-    // A. Start at the top-right straight edge
-    path.moveTo(w - inset - radius, inset);
-
-    // B. Top edge (Right to Left)
-    path.lineTo(inset + radius, inset);
-
-    // C. Top-Left Scallop Corner (Inward Curve)
-    path.cubicTo(
-      inset + depth,
-      inset,
-      inset,
-      inset + depth,
-      inset,
-      inset + radius,
+  void _drawCenterText(Canvas canvas, Offset center, double percent) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: "${percent.toStringAsFixed(0)}%",
+        style: const TextStyle(
+          fontSize: 26,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
     );
 
-    // D. Left edge (Top to Bottom)
-    path.lineTo(inset, h - inset - radius);
+    textPainter.layout();
 
-    // E. Bottom-Left Scallop Corner
-    path.cubicTo(
-      inset,
-      h - inset - depth,
-      inset + depth,
-      h - inset,
-      inset + radius,
-      h - inset,
+    textPainter.paint(
+      canvas,
+      Offset(
+        center.dx - textPainter.width / 2,
+        center.dy - textPainter.height / 2,
+      ),
     );
-
-    // F. Bottom edge (Left to Right)
-    path.lineTo(w - inset - radius, h - inset);
-
-    // G. Bottom-Right Scallop Corner
-    path.cubicTo(
-      w - inset - depth,
-      h - inset,
-      w - inset,
-      h - inset - depth,
-      w - inset,
-      h - inset - radius,
-    );
-
-    // H. Right edge (Bottom to Top)
-    path.lineTo(w - inset, inset + radius);
-
-    // I. Top-Right Scallop Corner (to close the path)
-    path.cubicTo(
-      w - inset,
-      inset + depth,
-      w - inset - depth,
-      inset,
-      w - inset - radius,
-      inset,
-    );
-
-    return path;
   }
 
   @override
-  bool shouldRepaint(covariant ScallopedProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.strokeWidth != strokeWidth ||
-        oldDelegate.cornerRadius != cornerRadius ||
-        oldDelegate.scallopDepth != scallopDepth;
-  }
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

@@ -218,7 +218,7 @@ class _PrivateLockViewState extends State<PrivateLockView>
                   Spacer(),
                   _buildPinIndicators(),
                   const Spacer(),
-                  _buildNumberPad(),
+                  _buildNumberPad(), const Spacer(),
                 ],
               ),
             ),

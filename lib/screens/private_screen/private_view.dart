@@ -54,7 +54,8 @@ class _PrivateViewState extends State<PrivateView> {
             context.push(AppRouter.premium);
           },
           onBackTap: () {
-            context.go(AppRouter.dashboard);
+            // context.go(AppRouter.dashboard);
+            context.pop();
           },
         ),
         body: Consumer<PrivateProvider>(
