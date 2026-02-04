@@ -12,7 +12,7 @@ class BatteryOptimizerScreen extends StatefulWidget {
   State<BatteryOptimizerScreen> createState() => _BatteryOptimizerScreenState();
 }
 
-class _BatteryOptimizerScreenState extends State<BatteryOptimizerScreen> {
+class _BatteryOptimizerScreenState extends State<BatteryOptimizerScreen> with SingleTickerProviderStateMixin{
   final Battery _battery = Battery();
 
   int batteryLevel = 0;
@@ -25,12 +25,38 @@ class _BatteryOptimizerScreenState extends State<BatteryOptimizerScreen> {
   bool wifiDisabled = false;
 
   StreamSubscription<BatteryState>? batterySubscription;
+  late AnimationController _chargingController;
+  late Animation<double> _glowAnimation;
+  @override
+  void dispose() {
+    _chargingController.dispose(); batterySubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
     _loadBatteryInfo();
     _listenBatteryChanges();
+    _chargingController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+
+    _glowAnimation = Tween<double>(begin: 0.2, end: 0.6).animate(
+      CurvedAnimation(
+        parent: _chargingController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    print('isCharging $isCharging');
+    // Start animation if charging
+    if (isCharging) {
+      _chargingController.repeat(reverse: true);
+    } else {
+      _chargingController.stop();
+    }
+
   }
 
   Future<void> _loadBatteryInfo() async {
@@ -53,11 +79,7 @@ class _BatteryOptimizerScreenState extends State<BatteryOptimizerScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    batterySubscription?.cancel();
-    super.dispose();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -102,96 +124,141 @@ class _BatteryOptimizerScreenState extends State<BatteryOptimizerScreen> {
   // ===========================================================
   // ✅ Battery Card
   // ===========================================================
+  LinearGradient getBatteryGradient(int batteryLevel) {
+    if (batteryLevel >= 70) {
+      return const LinearGradient(
+        colors: [
+          Color(0xFF1E8E3E), // Dark Green
+          Color(0xFF43D854), // Light Green
+        ],
+      );
+    } else if (batteryLevel >= 30) {
+      return const LinearGradient(
+        colors: [
+          Color(0xFFFFC107), // Amber Yellow
+          Color(0xFFFFE082), // Soft Yellow
+        ],
+      );
+    } else {
+      return const LinearGradient(
+        colors: [
+          Color(0xFFD32F2F), // Dark Red
+          Color(0xFFFF5252), // Bright Red
+        ],
+      );
+    }
+  }
 
   Widget _batteryCard() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E8E3E), Color(0xFF43D854)],
-        ),
-      ),
-      child: Row(
-        children: [
-          // Left Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Battery Level",
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+    return AnimatedBuilder(
+        animation: _glowAnimation,
+        builder: (context, child) {
+        return AnimatedContainer(
+          duration: Duration(milliseconds: 900),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: getBatteryGradient(batteryLevel), // ✅ Glow Effect When Charging
+            boxShadow: isCharging
+                ? [
+              BoxShadow(
+                color: Colors.greenAccent.withOpacity(
+                  _glowAnimation.value,
                 ),
-
-                const SizedBox(height: 0),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "$batteryLevel%",
-                      style: const TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    // Right Battery Icon
-                    Container(
-                      width: 65.w,
-                      height: 65.h,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.75),
-                        borderRadius: BorderRadius.circular(23),
-                      ),
-                      child: Icon(
-                        Icons.battery_charging_full,
-                        color: const Color(0xff0CC53B),
-                        size: 45.fSize,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
-
-                LinearProgressIndicator(
-                  value: batteryLevel / 100,
-                  minHeight: 10,
-                  backgroundColor: Colors.white24,
-                  borderRadius: BorderRadius.circular(12),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Colors.black87,
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                Row(
-                  children: [
-                    const SizedBox(width: 6),
-                    const Text(
-                      "Battery life depends on usage",
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                    const Spacer(),
-                    Icon(Icons.flash_on, color: Colors.yellowAccent, size: 16),
-                    const SizedBox(width: 6),
-                    Text(
-                      isCharging ? "Charging" : "Not Charging",
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                blurRadius: 25,
+                spreadRadius: 2,
+              ),
+            ]
+                : [],
           ),
-        ],
-      ),
+          child: Row(
+            children: [
+              // Left Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Battery Level",
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+
+                    const SizedBox(height: 0),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "$batteryLevel%",
+                          style: const TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        // Right Battery Icon
+                        AnimatedScale(
+                          scale: isCharging ? 1.15 : 1,
+                          duration: const Duration(milliseconds: 600),
+                          curve: Curves.easeInOut,
+                          child: Container(
+                            width: 65.w,
+                            height: 65.h,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.75),
+                              borderRadius: BorderRadius.circular(23),
+                            ),
+                            child: Icon(
+                              Icons.battery_charging_full,
+                              color: isCharging? const Color(0xff0CC53B):Colors.teal,
+                              size: 45.fSize,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    LinearProgressIndicator(
+                      value: batteryLevel / 100,
+                      minHeight: 10,
+                      backgroundColor: Colors.white24,
+                      borderRadius: BorderRadius.circular(12),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Colors.black87,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Row(
+                      children: [
+                        const SizedBox(width: 6),
+                        const Text(
+                          "Battery life depends on usage",
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                        const Spacer(),
+                        Icon(Icons.flash_on, color: Colors.yellowAccent, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          isCharging ? "Charging" : "Not Charging",
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+            ],
+          ),
+        );
+      }
     );
   }
 

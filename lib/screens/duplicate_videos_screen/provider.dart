@@ -8,6 +8,7 @@ import '../../../models/album_duplicate.dart';
 import '../../../models/duplicate_model.dart';
 
 class DuplicateVideoFinderProvider extends ChangeNotifier {
+  // DuplicateVideoFinderProvider({})
   bool isLoading = false;
   bool isScanning = false;
   double scanProgress = 0.0;
@@ -44,8 +45,8 @@ class DuplicateVideoFinderProvider extends ChangeNotifier {
   }
 
   Future<void> startScan() async {
-    if (_hasScannedOnce) return;
-    _hasScannedOnce = true;
+    // if (_hasScannedOnce) return;
+    // _hasScannedOnce = true;
 
     isLoading = true;
     isScanning = true;

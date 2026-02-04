@@ -11,6 +11,7 @@ import '../../core/widgets/app_bar.dart';
 import '../../core/widgets/settings_banner.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../paywall_screen/paywall_provider.dart';
+import '../private_screen/lock_screen.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -69,6 +70,19 @@ class SettingsView extends StatelessWidget {
                       title: AppLocalizations.of(context)!.theme,
                       onTap: () {
                         context.push(AppRouter.themescreen);
+                      },
+                    ),
+                    _buildSettingsItem(
+                      context,
+                      icon: "assets/dashboard/ic_private.svg",
+                      title: AppLocalizations.of(context)!.private,
+                      onTap:  () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PrivateLockView(),
+                          ),
+                        );
                       },
                     ),
                     _buildSettingsItem(

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../models/media_item.dart';
 import '../../services/storage_permission.dart';
 import '../../services/storage_service.dart';
+import '../home_screen/phone_cleaner_home.dart';
 
 class StorageProvider extends ChangeNotifier {
   final StorageService _service = StorageService();
@@ -173,7 +174,7 @@ class StorageProvider extends ChangeNotifier {
 
       await loadStorageDetails();
       await provider1.startScan();
-
+      Navigator.push(context,MaterialPageRoute(builder: (context)=>PhoneCleanerHome()));
       notifyListeners();
     } catch (e) {
       debugPrint("Smart clean failed: $e");

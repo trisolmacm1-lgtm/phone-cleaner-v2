@@ -106,7 +106,10 @@ class SegmentedCircularPainter extends CustomPainter {
     // ======================================================
 
     for (int i = 0; i < values.length; i++) {
-      final sweepAngle = (values[i] / totalStorage) * totalAngle;
+    final value = values[i];
+    if (value <= 0.0001) continue;
+
+    final sweepAngle = (values[i] / totalStorage) * totalAngle;
 
       final adjustedStart = startAngle + gap / 2;
       final adjustedSweep = sweepAngle - gap;

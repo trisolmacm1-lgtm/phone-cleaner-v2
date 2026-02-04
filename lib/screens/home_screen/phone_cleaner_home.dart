@@ -5,11 +5,17 @@ import 'package:phone_cleaner_2/core/utils/responsive_sizer.dart';
 import 'package:phone_cleaner_2/l10n/generated/app_localizations.dart';
 import 'package:phone_cleaner_2/screens/compress_screen/compress_view.dart';
 import 'package:phone_cleaner_2/screens/home_screen/home_screen.dart';
-import 'package:phone_cleaner_2/screens/home_screen/widget/battery_optimizer_screen.dart';
+import 'package:phone_cleaner_2/screens/home_screen/battery_optimizer_screen.dart';
 import 'package:phone_cleaner_2/screens/paywall_screen/paywall_provider.dart';
 import 'package:phone_cleaner_2/screens/private_screen/lock_screen.dart';
 import 'package:phone_cleaner_2/screens/settings_screen/settings.dart';
 import 'package:provider/provider.dart';
+
+import '../duplicate_contacts_screen/provider.dart';
+import '../duplicate_image_screen/provider/duplicate_finder_provider.dart';
+import '../duplicate_videos_screen/provider.dart';
+import '../paywall_screen/premium_unlock_screen.dart';
+import '../smart_cleaner/provider.dart';
 
 class PhoneCleanerHome extends StatelessWidget {
   const PhoneCleanerHome({super.key});
@@ -57,7 +63,8 @@ class PhoneCleanerHome extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: InkWell(
-                onTap: () {},
+                onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context)=>PremiumUnlockScreen()));
+                },
                 borderRadius: BorderRadius.circular(32),
                 child: Container(
                   height: 40,
@@ -119,17 +126,45 @@ class PhoneCleanerHome extends StatelessWidget {
                             color: Color(0xFF0D2B45),
                           ),
                         ),
-                        Text(
-                          '28/63GB used',
-                          style: TextStyle(
-                            fontSize: 18.fSize,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0D2B45),
-                          ),
+                        Consumer<StorageProvider>(
+                          builder: (context,pro,child) {
+                            return Text(
+                              '${pro.used.toStringAsFixed(0)}/${pro.total.toStringAsFixed(0)} Used',
+                              style: TextStyle(
+                                fontSize: 18.fSize,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0D2B45),
+                              ),
+                            );
+                          }
                         ),
                         const Spacer(),
                         ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async{
+                       // final     storage = context.read<StorageProvider>();
+                       //      final provider = Provider.of<DuplicateFinderProvider>(
+                       //        context,
+                       //        listen: false,
+                       //      );
+                       //      final provider1 = Provider.of<DuplicateVideoFinderProvider>(
+                       //        context,
+                       //        listen: false,
+                       //      );
+                       //      final provider2 = Provider.of<DuplicateContactsProvider>(
+                       //        context,
+                       //        listen: false,
+                       //      );
+                       //      print('albums ${provider.albums.length}');
+                       //      if (provider.albums.isEmpty ||
+                       //          provider1.albums.isEmpty ||
+                       //          provider2.duplicateGroups.isEmpty) {
+                       //      await  provider.startScan();
+                       //       await provider1.startScan();
+                       //        if (provider2.permissionStatus) {
+                       //          await provider2.findDuplicates();
+                       //        }
+                       //        // provider2.findDuplicates();
+                       //      }
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => HomeView(),
@@ -201,7 +236,7 @@ class PhoneCleanerHome extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             // Battery List Item
-            InkWell(
+            InkWell(  borderRadius: BorderRadius.circular(12),
               onTap: () {
                 Navigator.push(
                   context,
@@ -258,7 +293,7 @@ class PhoneCleanerHome extends StatelessWidget {
     VoidCallback ontap,
   ) {
     return InkWell(
-      onTap: ontap,
+      onTap: ontap,   borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.only(left: 10, top: 10),
         decoration: BoxDecoration(

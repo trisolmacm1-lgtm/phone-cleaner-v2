@@ -10,6 +10,7 @@ import 'package:phone_cleaner_2/core/utils/responsive_sizer.dart';
 import 'package:phone_cleaner_2/core/widgets/gradient_button.dart';
 import 'package:phone_cleaner_2/screens/duplicate_contacts_screen/provider.dart'
     hide Contact;
+import 'package:phone_cleaner_2/screens/home_screen/phone_cleaner_home.dart';
 import 'package:phone_cleaner_2/screens/smart_cleaner/provider.dart';
 import 'package:phone_cleaner_2/screens/smart_cleaner/widget/loading_ring.dart';
 import 'package:phone_cleaner_2/screens/smart_cleaner/widget/ring_widget.dart';
@@ -21,6 +22,8 @@ import '../../core/routes.dart';
 import '../../core/widgets/app_bar.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/media_item.dart';
+import '../duplicate_image_screen/provider/duplicate_finder_provider.dart';
+import '../duplicate_videos_screen/provider.dart';
 import '../paywall_screen/paywall_provider.dart';
 
 class SmartCleanerScreen extends StatefulWidget {
@@ -62,56 +65,140 @@ class _SmartCleanerScreenState extends State<SmartCleanerScreen> {
         return 0.001;
     }
   }
+  double mbToGB(double mb) {
+    return mb / 1024;
+  }
+
+  // ✅ Convert formatted string → GB
+  // double formattedSizeToGB(String formattedSize) {
+  //   final parts = formattedSize.split(" ");
+  //   if (parts.length < 2) return 0.0;
+  //
+  //   final value = double.tryParse(parts[0]) ?? 0.0;
+  //   final unit = parts[1].toUpperCase();
+  //
+  //   switch (unit) {
+  //     case "KB":
+  //       return value / (1024 * 1024);
+  //     case "MB":
+  //       return value / 1024;
+  //     case "GB":
+  //       return value;
+  //     default:
+  //       return 0.0;
+  //   }
+  // }
+  //
+  // // ✅ MB → GB
+  // double mbToGB(double mb) => mb / 1024;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
+
+    // ✅ Fake loading animation delay
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((val) async {
-      final provider = Provider.of<StorageProvider>(context, listen: false);
-      final providers = Provider.of<DuplicateContactsProvider>(
-        context,
-        listen: false,
-      );
-
-      await provider.loadContacts();
-      await provider.computeVideoSizes(batchSize: 10);
-      await provider.computePhotoSizes(batchSize: 15);
-      // const int bytesPerContact = 1024; // 1 KB per contact
-      // int contactBytes = provider.contacts.length * bytesPerContact;
-
-      dataSegmentss = [
-        SegmentData(
-          value: provider.photos.isEmpty
-              ? 0.001
-              : provider.photos.fold<int>(0, (s, i) => s + i.sizeInBytes) / 1e9,
-          color: const Color.fromARGB(255, 0, 52, 240),
-        ),
-        SegmentData(
-          value: provider.videos.isEmpty
-              ? 0.001
-              : provider.videos.fold<int>(0, (s, i) => s + i.sizeInBytes) / 1e9,
-          color: const Color.fromARGB(156, 237, 0, 0),
-        ),
-        SegmentData(
-          value: providers.formattedSize.isEmpty
-              ? 0.001
-              : formattedSizeToGB(providers.formattedSize),
-          color: const Color.fromARGB(255, 200, 124, 0),
-        ),
-      ];
     });
   }
 
-  Set<int> selected = {};
+  // ===========================================================
+  // ✅ Build Segments Correctly
+  // ===========================================================
 
+  List<SegmentData> buildSegments(BuildContext context) {
+    final imageProvider = context.watch<DuplicateFinderProvider>();
+    final videoProvider = context.watch<DuplicateVideoFinderProvider>();
+    final contactProvider = context.watch<DuplicateContactsProvider>();
+
+    // ✅ Always calculate values in GB
+    final photoGB = mbToGB(imageProvider.totalEstimatedDuplicateSizeMB);
+    final videoGB = mbToGB(videoProvider.totalEstimatedDuplicateSizeMB);
+    final contactGB = formattedSizeToGB(contactProvider.formattedSize);
+
+    return [
+      SegmentData(value: photoGB, color: Colors.green),
+      SegmentData(value: videoGB, color: Colors.blue),
+      SegmentData(value: contactGB, color: Colors.orange),
+    ];
+  }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   Future.delayed(const Duration(seconds: 3), () {
+  //     if (mounted) {
+  //       setState(() {
+  //         _isLoading = false;
+  //       });
+  //     }
+  //   });
+  //
+  //   WidgetsBinding.instance.addPostFrameCallback((val) async {
+  //     final provider = Provider.of<StorageProvider>(context, listen: false);
+  //     final providers = Provider.of<DuplicateContactsProvider>(
+  //       context,
+  //       listen: false,
+  //     );
+  //
+  //     await provider.loadContacts();
+  //     await provider.computeVideoSizes(batchSize: 10);
+  //     await provider.computePhotoSizes(batchSize: 15);
+  //     // const int bytesPerContact = 1024; // 1 KB per contact
+  //     // int contactBytes = provider.contacts.length * bytesPerContact;
+  //
+  //     dataSegmentss = [
+  //       SegmentData(
+  //         value:  mbToGB(
+  //           context.read<DuplicateFinderProvider>()
+  //               .totalEstimatedDuplicateSizeMB,
+  //         ),
+  //         color:  Colors.green
+  //       ),
+  //       SegmentData(
+  //         value:  mbToGB(
+  //           context.read<DuplicateVideoFinderProvider>()
+  //               .totalEstimatedDuplicateSizeMB,
+  //         ),
+  //         color:Colors.blue.withOpacity(0.23)
+  //       ),
+  //       SegmentData(
+  //         value:  formattedSizeToGB(
+  //           context.read<DuplicateContactsProvider>().formattedSize,
+  //         ),
+  //         color: Colors.orange
+  //       ),
+  //     ];
+  //   });
+  // }
+
+  Set<int> selected = {};
+  double bytesToGB(int bytes) {
+    return bytes / (1024 * 1024 * 1024);
+  }
+  double formattedSizesToGB(String formatted) {
+    final parts = formatted.split(" ");
+
+    if (parts.length < 2) return 0.0;
+
+    final value = double.tryParse(parts[0]) ?? 0.0;
+    final unit = parts[1].toUpperCase();
+
+    switch (unit) {
+      case "KB":
+        return value / (1024 * 1024);
+      case "MB":
+        return value / 1024;
+      case "GB":
+        return value;
+      case "TB":
+        return value * 1024;
+      default:
+        return value;
+    }
+  }
   // double get totalValue =>
   //     dataSegments.fold(0, (sum, item) => sum + item.value);
   @override
@@ -166,6 +253,12 @@ class _SmartCleanerScreenState extends State<SmartCleanerScreen> {
       );
     }
 
+    // ✅ Build segments dynamically
+    final segments = buildSegments(context);
+
+    // ✅ Correct total value = sum of all segments
+    final totalSegmentsValue =
+    segments.fold(0.0, (sum, seg) => sum + seg.value);
     return Scaffold(
       appBar: CustomAppBar(
         title: localizations.phoneCleaner,
@@ -181,21 +274,21 @@ class _SmartCleanerScreenState extends State<SmartCleanerScreen> {
           if (storage.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
+print('storage.total ${storage.total}');
           return Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const SizedBox(height: 0),
               Center(
                 child: RingProgressWidget(
-                  segments: dataSegmentss ?? [],
-                  totalValue: storage.total / 100,
-                  centerText:
-                      "${storage.used.toStringAsFixed(1)} GB", // This can be dynamic
+                  segments: segments,
+                  totalValue: totalSegmentsValue,
+                  centerText: "${totalSegmentsValue.toStringAsFixed(2)} GB",
                   innerCircleRadius: 90,
                   ringStrokeWidth: 18,
                 ),
               ),
+
 
               // 🔵 Storage Circular Indicator
               // Wrap the indicator in a Container to add padding and shadow
@@ -298,7 +391,8 @@ class _SmartCleanerScreenState extends State<SmartCleanerScreen> {
                       index: 2,
                       title: localizations.images,
                       size:
-                          "${(storage.photos.fold<int>(0, (s, i) => s + i.sizeInBytes) / 1e9).toStringAsFixed(2)} GB",
+                          "${ context.watch<DuplicateFinderProvider>()
+                              .totalEstimatedDuplicateSizeFormatted} ",
                       isExpanded: false,
                       onToggle: () async {
                         setState(() {
@@ -325,7 +419,7 @@ class _SmartCleanerScreenState extends State<SmartCleanerScreen> {
                       },
                       children: _buildMediaPreview(storage.photos),
                       assetName: 'assets/svg/image.svg',
-                      color: const Color.fromARGB(255, 81, 38, 150),
+                      color: Colors.green
                     ),
 
                     const SizedBox(height: 18),
@@ -333,11 +427,12 @@ class _SmartCleanerScreenState extends State<SmartCleanerScreen> {
                     // 🎥 Videos Section
                     _buildAnimatedSection(
                       index: 1,
-                      color: const Color.fromARGB(189, 255, 183, 183),
+                      color:  Colors.blue,
                       // Color(0xffFE7F7F),
                       title: localizations.videos,
                       size:
-                          "${(storage.videos.fold<int>(0, (s, i) => s + i.sizeInBytes) / 1e9).toStringAsFixed(2)} GB",
+                          "${ context.watch<DuplicateVideoFinderProvider>()
+                              .totalEstimatedDuplicateSizeFormatted} ",
                       isExpanded: showVideos,
                       onToggle: () async {
                         setState(() {
@@ -375,11 +470,13 @@ class _SmartCleanerScreenState extends State<SmartCleanerScreen> {
                         //     prov.contacts.length * bytesPerContact;
                         return _buildAnimatedSection(
                           index: 0,
-                          color: const Color.fromARGB(255, 200, 124, 0),
+                          color: Colors.orange,
                           // Color(0xffFED89B),
                           title: localizations.contacts,
 
-                          size: prov.formattedSize,
+                          size:  formattedSizesToGB(
+                            context.watch<DuplicateContactsProvider>().formattedSize,
+                          ).toString(),
                           isExpanded: showContacts,
                           onToggle: () async {
                             setState(() {
@@ -427,10 +524,11 @@ class _SmartCleanerScreenState extends State<SmartCleanerScreen> {
                         final isPremium = context.read<PremiumProvider>().isSubscribe;
                         final storage = context.read<StorageProvider>();
 
-                        if (isPremium) {
+                        if (!isPremium) {
                           // Pass the 'selected' set to the provider method
                           await storage.smartCleanAll(context, selected).then((va) {
                             // Success logic here
+                          
                           });
                         } else {
                           context.push(AppRouter.premium);

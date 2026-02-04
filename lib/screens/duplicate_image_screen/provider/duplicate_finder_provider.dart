@@ -11,6 +11,7 @@ import '../../../models/media_item.dart';
 import '../../../services/storage_service.dart';
 
 class DuplicateFinderProvider extends ChangeNotifier {
+
   bool isLoading = false;
   bool isScanning = false;
   double scanProgress = 0.0;
@@ -24,8 +25,8 @@ class DuplicateFinderProvider extends ChangeNotifier {
 
   Future<void> startScan() async {
     print('_hasScannedOnce $_hasScannedOnce');
-    if (_hasScannedOnce) return;
-    _hasScannedOnce = true;
+    // if (_hasScannedOnce) return;
+    // _hasScannedOnce = true;
 
     isLoading = true;
     isScanning = true;

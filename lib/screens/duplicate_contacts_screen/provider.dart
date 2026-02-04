@@ -55,6 +55,7 @@ class DuplicateGroup {
 
 // Provider class
 class DuplicateContactsProvider extends ChangeNotifier {
+
   List<DuplicateGroup> _duplicateGroups = [];
   bool _isLoading = false;
   String? _errorMessage;

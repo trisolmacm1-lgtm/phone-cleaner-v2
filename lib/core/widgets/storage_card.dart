@@ -192,16 +192,53 @@ class _StorageUsageCardState extends State<StorageUsageCard> {
     });
     super.initState();
   }
+  double formattedSizeToGB(String formatted) {
+    final parts = formatted.split(" ");
+
+    if (parts.length < 2) return 0.0;
+
+    final value = double.tryParse(parts[0]) ?? 0.0;
+    final unit = parts[1].toUpperCase();
+
+    switch (unit) {
+      case "KB":
+        return value / (1024 * 1024);
+      case "MB":
+        return value / 1024;
+      case "GB":
+        return value;
+      case "TB":
+        return value * 1024;
+      default:
+        return value;
+    }
+  }
+  double mbToGB(double mb) {
+    return mb / 1024;
+  }
 
   @override
   Widget build(BuildContext context) {
     final storage = context.watch<StorageProvider>();
     final usedPercent = (storage.used / storage.total).clamp(0.0, 1.0);
-    // print('storage.total ${storage.total}');
-    // print('storage.used ${storage.used}');
-    print(
-      'other storage ${double.parse(context.watch<DuplicateContactsProvider>().formattedSize.split(' ').first)}',
-    );
+//     print('storage.total ${storage.used}');
+//     // print('storage.used ${storage.used}');
+//     print(
+//       'contact storage ${ formattedSizeToGB(
+//         context.watch<DuplicateContactsProvider>().formattedSize,
+//       )}',
+//     );
+//     print(
+//       'Images storage ${   mbToGB(
+//         context.watch<DuplicateFinderProvider>()
+//             .totalEstimatedDuplicateSizeMB,
+//       )}',
+//     );
+// print('video storage ${mbToGB(
+//   context.watch<DuplicateVideoFinderProvider>()
+//       .totalEstimatedDuplicateSizeMB,
+// )
+//     }');
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 20, bottom: 20, left: 10, right: 10),
@@ -246,30 +283,24 @@ class _StorageUsageCardState extends State<StorageUsageCard> {
                   // height: 140.h,
                   child: CustomPaint(
                     painter: SegmentedCircularPainter(
-                      totalStorage: storage.total,
+                      totalStorage:
+                      storage.used,
                       // imageStorage: 49,
                       // videoStorage: 140,
                       // contactStorage: 202,
-                      imageStorage: double.parse(
-                        context
-                            .watch<DuplicateFinderProvider>()
-                            .totalEstimatedDuplicateSizeFormatted
-                            .split(' ')
-                            .first,
+                      imageStorage: mbToGB(
+                        context.watch<DuplicateFinderProvider>()
+                            .totalEstimatedDuplicateSizeMB,
                       ),
-                      videoStorage: double.parse(
-                        context
-                            .watch<DuplicateVideoFinderProvider>()
-                            .totalEstimatedDuplicateSizeFormatted
-                            .split(' ')
-                            .first,
+
+                      videoStorage: mbToGB(
+                        context.watch<DuplicateVideoFinderProvider>()
+                            .totalEstimatedDuplicateSizeMB,
                       ),
-                      contactStorage: double.parse(
-                        context
-                            .watch<DuplicateContactsProvider>()
-                            .formattedSize
-                            .split(' ')
-                            .first,
+
+                      contactStorage:
+                      formattedSizeToGB(
+                        context.watch<DuplicateContactsProvider>().formattedSize,
                       ),
                     ),
                     // child: Center(
